@@ -285,7 +285,7 @@ struct ActorDef
 	ActorDef();
 
 	/// Create an Actor Definition from a file image.
-	ActorDef(geVFile *pFile);
+	ActorDef(File *pFile);
 
 	/// Destroy a ActorDef (its Body and its geMotions)  Actors that rely on this definition become invalid.
 	~ActorDef();
@@ -293,7 +293,7 @@ struct ActorDef
 	bool IsValid() const;
 
 	/// Writes an existing Actor to a file image.  Returns true on success, false on failure.
-	bool WriteToFile(geVFile *pFile);
+	bool WriteToFile(File *pFile);
 
 	/// Returns a Body pointer
 	Body *GetBody();
