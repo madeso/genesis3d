@@ -64,7 +64,7 @@ struct File
 	bool Read(void *Buff, int Count);
 	bool Write(const void *Buff, int Count);
 	bool Seek(int where, Seek Whence);
-	bool Printf(const char *Format, ...);
+	bool Printf(std::string Format, ...);
 	bool EOF() const;
 	bool Tell(long *Position) const;
 	bool GetProperties(FileProperties *Properties) const;
@@ -80,17 +80,17 @@ struct FileSystem
 {
 	/// Creates a finder object from which you can get iterated file names.
 	/// This is findfirst/findnext functionality.
-	FileFinder *CreateFinder(const char *FileSpec);
+	FileFinder *CreateFinder(std::string FileSpec);
 
 	/// Opens a file / file system.
-	FileSystem *OpenNewSystem(FileTypeIdentifier FileSystemType, const char *Name, void *Context, OpenModeFlags openModeFlags);
+	FileSystem *OpenNewSystem(FileTypeIdentifier FileSystemType, std::string Name, void *Context, OpenModeFlags openModeFlags);
 
 	bool UpdateContext(void *Context, int ContextSize);
 
 	/// Returns the outer context in which file was opened.
 	FileSystem *GetContext() const;
 
-	File *Open(const char *Name, OpenModeFlags openModeFlags);
+	File *Open(std::string Name, OpenModeFlags openModeFlags);
 
 	/// Appends (or prepends) the path associated with FS2 into this.
 	///    Append==true   causes the FS2 to be searched AFTER this
@@ -98,13 +98,13 @@ struct FileSystem
 	bool AddPath(const File *FS2, bool Append);
 
 	/// Deletes a file within a file system.  Returns true on success, false on failure.
-	bool DeleteFile(const char *FileName);
+	bool DeleteFile(std::string FileName);
 
 	/// Renames a file within a file system.  Returns true on success, false on failure.
-	bool RenameFile(const char *FileName, const char *NewName);
+	bool RenameFile(std::string FileName, std::string NewName);
 
 	/// Returns true if the file FileName exists in FS, false otherwise. Does not do any searching (?)
-	bool FileExists(const char *FileName);
+	bool FileExists(std::string FileName);
 
 	/// closes and destroys the File
 	bool Close();

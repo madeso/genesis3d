@@ -93,12 +93,12 @@ struct Bitmap
 	static Bitmap *CreateFromInfo(const BitmapInfo *pInfo);
 
 	static Bitmap *CreateFromFile(File *F);
-	static Bitmap *CreateFromFileName(const File *BaseFS, const char *Name);
+	static Bitmap *CreateFromFileName(const File *BaseFS, std::string Name);
 	bool WriteToFile(File *F) const;
 
 	/// BaseFS is not really const if it is a virtual file;
 	///  it *is* const if it is a dos directory
-	bool WriteToFileName(const File *BaseFS, const char *Name) const;
+	bool WriteToFileName(const File *BaseFS, std::string Name) const;
 
 	/// returns whether Bmp was actually destroyed : not success/failure
 	bool Destroy();

@@ -111,18 +111,18 @@ struct Actor
 
 	/// Gets the current transform for a single bone in A.  (actor space->world space transform)
 	/// with a NULL BoneName, this returns the current 'root' transform
-	bool GetBoneTransform(const char *BoneName, XForm *Transform);
+	bool GetBoneTransform(std::string BoneName, XForm *Transform);
 
 	/// Gets the extent box (axial-aligned bounding box) for a given bone (for the current pose)
 	/// if BoneName is NULL, gets the a general bounding box from the body of the actor if it has been set.
-	bool GetBoneExtBox(const char *BoneName, ExtBox *ExtBox);
+	bool GetBoneExtBox(std::string BoneName, ExtBox *ExtBox);
 
 	/// Gets the non-axial-aligned bounding box for a given bone (for the current pose)
 	///  The box is specified by a corner, and
 	///  a non-normalized orientation transform.  Add DX,DY,DZ components
 	///  of the orientation to get other corners of the box
 	/// if BoneName is NULL, gets the a general bounding box from the body of the actor if it has been set.
-	bool GetBoneBoundingBox(const char *BoneName,
+	bool GetBoneBoundingBox(std::string BoneName,
 							vec3f *Corner,
 							vec3f *DX,
 							vec3f *DY,
@@ -137,7 +137,7 @@ struct Actor
 
 	/// Sets an assigned general non changing bounding box from the actor
 	bool SetExtBox(const ExtBox *ExtBox,
-				   const char *CenterBoxOnThisNamedBone); // NULL uses root position of actor
+				   std::string CenterBoxOnThisNamedBone); // NULL uses root position of actor
 
 	/// Gets the rendering hint bounding box from the actor
 	///   if the RenderHintExtBox is disabled, Enabled is false, and the box returned has zero dimensions,
@@ -158,7 +158,7 @@ struct Actor
 	///   To attach the box to the 'root' bone, pass NULL for CenterBoxOnThisNamedBone
 	///   For disabling the hint box: (disabled is default) pass Box with zero mins and maxs
 	bool SetRenderHintExtBox(const ExtBox *Box,
-							 const char *CenterBoxOnThisNamedBone);
+							 std::string CenterBoxOnThisNamedBone);
 
 	/// Returns the pointer which was set with SetUserData.  NULL if not set.
 	void *GetUserData();
@@ -186,8 +186,8 @@ struct Actor
 	void BlendPose(const Motion *Motion, float Time,
 				   const XForm *Transform, float BlendAmount);
 
-	bool GetBoneAttachment(const char *BoneName, XForm *Transform);
-	bool SetBoneAttachment(const char *BoneName, XForm *Transform);
+	bool GetBoneAttachment(std::string BoneName, XForm *Transform);
+	bool SetBoneAttachment(std::string BoneName, XForm *Transform);
 
 	bool SetLightingOptions(bool UseFillLight,					// true or false
 							const vec3f *FillLightNormal,		// normalized vector
@@ -199,7 +199,7 @@ struct Actor
 							float AmbientLightBlue,				// 0 .. 255
 							bool AmbientLightFromFloor,			// true or false
 							int MaximumDynamicLightsToUse,		// 0 for none
-							const char *LightReferenceBoneName, // NULL for root
+							std::string LightReferenceBoneName, // NULL for root
 							bool PerBoneLighting);
 	/// if true, then dynamic lighting attenuation and direction is computed
 	/// for each bone.  if false, then the computations are relative to the
@@ -215,7 +215,7 @@ struct Actor
 							float *AmbientLightBlue,		// 0 .. 255
 							bool *UseAmbientLightFromFloor, // true or false
 							int *MaximumDynamicLightsToUse,
-							const char **LightReferenceBoneName,
+							std::string *LightReferenceBoneName,
 							bool *PerBoneLighting); // NULL for root
 
 	void SetScale(float ScaleX, float ScaleY, float ScaleZ);
@@ -223,7 +223,7 @@ struct Actor
 	bool SetShadow(bool DoShadow,
 				   float Radius,
 				   const Bitmap *ShadowMap,
-				   const char *BoneName);
+				   std::string BoneName);
 
 	///  Animation Cuing API:
 	/// high level Actor animation:  The principle is that motions can be applied to an actor
@@ -262,20 +262,20 @@ struct Actor
 	/// moving and animating an actor that is not actually visible.  Rendering and queries will be 'optimized'
 	/// until the actor is given any pose or animation that doesn't go through AnimationStepBoneOptimized() or
 	///  AnimationTestStepBoneOptimized().  BoneName can be NULL to compute only 'root' bone.
-	bool AnimationStepBoneOptimized(float DeltaTime, const char *BoneName);
+	bool AnimationStepBoneOptimized(float DeltaTime, std::string BoneName);
 
 	/// optimized version of AnimationTestStep.  Limits calculations to the bone named BoneName, and it's
 	/// parents.  BoneName will be correctly computed, but the other bones will be wrong.  This is usefull for
 	/// moving and animating an actor that is not actually visible.  Rendering and queries will be 'optimized'
 	/// until the actor is given any pose or animation that doesn't go through AnimationStepBoneOptimized() or
 	///  AnimationTestStepBoneOptimized().  BoneName can be NULL to compute only 'root' bone.
-	bool AnimationTestStepBoneOptimized(float DeltaTime, const char *BoneName);
+	bool AnimationTestStepBoneOptimized(float DeltaTime, std::string BoneName);
 
 	/// applies an 'immediate' offset to the animated actor
 	bool AnimationNudge(XForm *Offset);
 
 	/// Return data, if return value is true
-	bool GetAnimationEvent(const char **ppEventString);
+	bool GetAnimationEvent(std::string *ppEventString);
 };
 
 /// the deinition of an actor's geometry/bone structure
@@ -299,7 +299,7 @@ struct ActorDef
 	Body *GetBody();
 
 	/// Returns true if the actor definition has a bone named 'Name'
-	bool HasBoneNamed(const char *Name);
+	bool HasBoneNamed(std::string Name);
 
 	/// Returns the number of geMotions in the geActors Motion library.
 	int GetMotionCount() const;
@@ -314,8 +314,8 @@ struct ActorDef
 	///   This is an aliased pointer - Not a copy.  Changes to this motion will be reflected
 	///   in the actor.  Destroying this return motion will confuse the actor.
 	/// if there is no motion that matches the given name, the return value will be NULL
-	Motion *GetMotionByName(const char *Name) const;
+	Motion *GetMotionByName(std::string Name) const;
 
 	/// Returns a motion name given an ActorDef and a motion index.
-	const char *GetMotionName(int Index) const;
+	std::string GetMotionName(int Index) const;
 };
