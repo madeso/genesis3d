@@ -6,7 +6,7 @@ struct Motion
 {
 	Motion(bool ManageNames);
 
-	gePath *GetPath(int Index) const;
+	Path *GetPath(int Index) const;
 	int GetPathCount() const;
 
 	bool SetName(std::string Name);
