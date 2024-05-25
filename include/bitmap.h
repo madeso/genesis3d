@@ -177,7 +177,7 @@ struct Bitmap
 	///	wish to fit in smoothly with the previous data
 	/// warning : if you use this function with many different gammas, performance will suffer!
 	///	use one global gamma for all bitmaps!  try to let the engine manage gamma for you,
-	///	via geEngine_SetGamma !
+	///	via Engine_SetGamma !
 	bool SetGammaCorrection(float Gamma, bool Apply);
 
 	bool SetPreferredFormat(Bitmap *Bmp, PixelFormat Format);

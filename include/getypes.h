@@ -1,6 +1,6 @@
 #pragma once
 
-///	Collision defines (for geWorld_Collision)
+///	Collision defines (for World_Collision)
 enum class CollisionFlag
 {
 	MESHES = (1 << 0),
@@ -10,7 +10,7 @@ enum class CollisionFlag
 	ALL = (GE_COLLIDE_MESHES | GE_COLLIDE_MODELS | GE_COLLIDE_ACTORS)
 };
 
-/// Actor flags (geWorld_AddActor)
+/// Actor flags (World_AddActor)
 enum class ActorFlag
 {
 	/// Render in normal views
@@ -19,12 +19,12 @@ enum class ActorFlag
 	RENDER_MIRRORS = (1 << 1),
 	/// Render always, skipping all visibility tests
 	RENDER_ALWAYS = (1 << 2),
-	/// Collide when calling geWorld_Collision
+	/// Collide when calling World_Collision
 	COLLIDE = (1 << 3)
 };
 
 //
-//	Model flags (geWorld_ModelSetFlags)
+//	Model flags (WorldModelSetFlags)
 //
 enum class ModelFlag
 {
@@ -34,7 +34,7 @@ enum class ModelFlag
 	RENDER_MIRRORS = (1 << 1),
 	/// Render always, skipping all visibility tests
 	RENDER_ALWAYS = (1 << 2),
-	/// Collide when calling geWorld_Collision
+	/// Collide when calling World_Collision
 	COLLIDE = (1 << 3)
 };
 
