@@ -192,9 +192,30 @@ struct EntitySet
 	Entity *GetNextEntity(Entity *Entity);
 };
 
+/** The Camera object is responsible for handling projection and transformation support for rendering a scene from a given viewpoint.
+ * The geCamera object manages the relationship between world space, camera space, and screen space. It is responsible for converting between these coordinate systems. It also comprises field of view information used in rendering a 3D scene to the screen.
+ *
+ * Space | Description
+ * -------------|-------------------------------
+ * World space: |	World space is a 3D right handed coordinate system. Most of the Genesis3D APIs operate on parameters given in world space. Collision APIs and other world APIs that yield locational information all give their results in world space.
+ * Camera space:| 	Camera space is an intermediate 3D coordinate system that the engine uses in the process of projecting geometry to screen space.
+ * Screen space:| 	Screen space is a left handed coordinate system.
+ * */
 struct Camera
 {
-	Camera(float Fov, const Rect *rect);
+	/** Creates a camera.
+	 * You can use this to render multiple views to the screen at a time by creating multiple cameras with different screen rects.
+	 * In between `Engine::BeginFrame` and `Engine::EndFrame`, you can render the world multiple times, through different cameras.
+	 * If you render the world through two different cameras that have different screen rects, you will get two different views of
+	 * the world rendered to the screen in a single frame.
+	 * @param fov This parameter allows you to configure the field of view of the camera. A setting of 2.0 corresponds to a 90 degree field of view.
+	 * @param rect 	Screen space rectangle that the camera will project to. This parameter allows to select regions on the screen will be rendered to if you render using this camera.
+	 * @see Engine::BeginFrame
+	 * @see Engine::EndFrame
+	 */
+	Camera(float fov, const Rect *rect);
+
+	/// Destroys a camera
 	~Camera();
 
 	void SetZScale(float ZScale);
@@ -204,10 +225,28 @@ struct Camera
 	/// Polygons crossing the line are not nesessarily clipped exactly to the line.
 	void SetFarClipPlane(bool Enable, float ZFar);
 	void GetFarClipPlane(bool *Enable, float *ZFar) const;
+
+	/// @brief Sets the field of view and screen rect on a camera
+	/// @param Fov New field of view setting for the camera
+	/// @param rect New screen rect for the camera
+	/// @see  See Camera() for a discussion of the FOV and Rect parameters.
 	void SetAttributes(float Fov, const Rect *rect);
-	void GetClippingRect(Rect *rect) const;
-	void ScreenPointToWorld(int32 ScreenX, int32 ScreenY, vec3f *Vector) const;
-	void Project(const vec3f *PointInCameraSpace, vec3f *ProjectedPoint) const;
+
+	/// Gets the current screen rect of a camera
+	Rect GetClippingRect() const;
+
+	/// @brief Generates a unit vector in the direction of the camera, looking towards the given screen X and Y coordinates.
+	/// This API is useful for selecting objects in world space via screen space coordinates. Given a set of screen coordinates, use this API to get a normalized vector in the direction of that screen point. Scale the vector by an arbitrary amount, and use this to calculate an end point from the current camera translation. Take the current camera translation, and that end point, and use geWorld_Collision to collide against objects. This will allow you to accurately point to objects in 3D space using mouse coordinates.
+	/// @param ScreenX X coordinate in screen space
+	/// @param ScreenY Y coordinate in screen space
+	/// @returns Output unit vector
+	vec3f ScreenPointToWorld(int32 ScreenX, int32 ScreenY) const;
+
+	/// Projects a point in camera space to a point in screen space.
+	/// See the discussion in the overview on world space vs. camera space vs. screen space.
+	/// @param PointInCameraSpace Point to project
+	/// @returns Point projected into screen space
+	vec3f Project(const vec3f &PointInCameraSpace) const;
 	void Transform(const vec3f *WorldSpacePoint, vec3f *CameraSpacePoint) const;
 	void TransformArray(const vec3f *WorldSpacePointPtr, vec3f *CameraSpacePointPtr, int count) const;
 	void TransformAndProject(const vec3f *Point, vec3f *ProjectedPoint) const;
