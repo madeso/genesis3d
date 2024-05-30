@@ -75,6 +75,8 @@ struct BitmapPalette
 
 /**
  *
+ * Before you can use a geBitmap in any module, you must add the geBitmap to that module first.  For example, if you were planning on using geEngine_DrawBitmap, you must first add the geBitmap to the geEngine module (see geEngine_AddBitmap).   Please note that adding a geBitmap to a geEngine module, does not allow you to use the geBitmap in other modules.  You must add the geBitmap to each and every module that you plan on using the geBitmap with.  Also note that you cannot add a geBitmap to a geEngine, while in the middle of a drawing frame (in between calls to geEngine_BeginFrame, and geEngine_EndFrame)
+ *
  * if Bitmap is a lock for read, functions that modify it return failure
  * if Bitmap is a lock for write, functions that modify it attempt to
  *	modify the owner of the lock

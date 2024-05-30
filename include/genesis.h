@@ -16,33 +16,137 @@
 
 using HWND = int;
 
+/** The geEngine object is the container for the geDriver_System object, the geWorld object, and the geBitmap object. The primary job of the geEngine object is to provide a fast, and efficient interface to the output device, via the geDriver_System object.
+ * The geEngine object is the container for all 2d objects. The geEngine object is responsible for providing an interface to the 2d primary display device. This includes drawing geBitmaps, text, etc. All info pertaining to 3d is stored in other objects such as geActors, geWorlds, etc. Each 3d object is optimized to render its own set of primitives. It is the engines job to provide an interface to the primary display device for those objects. If you are familiar with DirectX, you can think of the geEngine object as a DirectDraw object.
+When the geEngine object is created, it creates a geDriver_System object internally. It is the responsibility of the user to obtain the system, and to set a valid Driver/Mode (geEngine_SetDriverAndMode) combination in the geEngine object.
+
+# Explanation of buffers, and how the geEngine uses them:
+The geEngine object uses the standard technique of double-buffering (whenever possible) to achieve non-flickering animation. This flickering is the result of being able to incrementally see what's being drawn into the front-buffer as it is being drawn.
+To counter this problem, the engine will create and maintain an n number of buffers whenever a valid Driver/Mode is set. These buffers are what the engine will use to draw into, for ANY of its drawing/rendering API's. A buffer can be one of two roles (or both in the case of only one buffer). It can either be the front-buffer, or a back-buffer. The front-buffer is the buffer that is currently visible. The back-buffers are the temporary buffers used to draw in while waiting to have the role of the front-buffer. At least one of the buffers must be the front-buffer at any given time. In the case of the engine only creating one buffer, that buffer will ALWAYS be the front-buffer, and all drawing will happen in this buffer (hence, all drawing will be visible immediately, and flickering will occur). In the case that the engine creates more than one buffer, one of them will be the front-buffer, while the others will remain back-buffers. In this case, all drawing will happen in the current active back-buffer, and any drawing won't be visible until the current active back-buffer that is being used changes it's role to the front-buffer. Note that only one front-buffer may exist at any given time, so in the case of a role change from back-buffer to front-buffer, the old front-buffer changes its role to a back-buffer. The engine then chooses the next available back-buffer in the chain as the active buffer to draw in.
+
+# Explanation of geEngine_BeginFrame, and geEngine_EndFrame:
+All drawing API's should be called AFTER geEngine_BeginFrame, and BEFORE geEngine_EndFrame. This is because, geEngine_BeginFrame will set up the current active back-buffer, and prepare it to be drawn in to for that frame. This includes clearing specified regions of the current back-buffer, etc. To see the contents of the back-buffer, geEngine_EndFrame must be called. geEngine_EndFrame will make the current back-buffer visible (changes it's role to the front-buffer), and set the old front-buffer to the next available back-buffer in the chain.
+*/
 struct Engine
 {
-	Engine(HWND hWnd, std::string AppName, std::string DriverDirectory);
+	/** Creates a geEngine object.
+	@param hWnd Handle to the window that should belong to Genesis. This window handle will be what Genesis receives it's focus from. In a window video mode (see geEngine_SetDriverAndMode), it will also be what is rendered into.
+	@param DriverDirectory The directory where the geEngine object will look for drivers upon creation.
+	@returns a valid geEngine object if the function succeeds, NULL otherwise.
+	 *
+	*/
+	Engine *Create(HWND hWnd, std::string AppName, std::string DriverDirectory);
+
+	/// Destroys a geEngine object.
 	~Engine();
 
-	bool AddWorld(World *World);
+	/** Adds a geWorld object to a geEngine object, and increases the reference count of the world by one.
+	 * A geWorld object can be added to a geEngine more than once.
+		@param world A geWorld object that will be added to the geEngine object.
+		@return true is the function succeeds, false otherwise.
+	*/
+	bool AddWorld(World *world);
+
+	/** Removes a previously added geWorld object from a geEngine object, and decreases the reference count of the geWorld object by one.
+		@param World 	The geWorld object that will be removed from the geEngine object.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool RemoveWorld(World *World);
-	bool AddBitmap(Bitmap *Bitmap);
+
+	/** Adds a geBitmap to a geEngine object, and increases the reference count of the geBitmap object by one.
+	 * A geBitmap can be added to a geEngine more than once.
+		@param bitmap The geBitmap object that will be added to the geEngine object.
+		@return true is the function succeeds, false otherwise
+	*/
+	bool AddBitmap(Bitmap *bitmap);
+
+	/** Removes a previously added geBitmap object from a geEngine object, and decreases the reference count of the geBitmap object by one.
+		@param Bitmap 	The geBitmap object that will be removed from the geEngine object.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool RemoveBitmap(Bitmap *Bitmap);
 	DriverSystem *GetDriverSystem();
+
+	/** Set the current driver and mode that the geEngine object will use for all further drawing, and rendering operations. Note that this function can be called anytime outside geEngine_BeginFrame/geEngine_EndFrame.
+		@param Driver A geDriver object that was previously enumerated with geDriver_SystemGetNextDriver.
+		@param DriverMode A geDriver_Mode object that was previously enumerated with geDriver_etNextMode.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool SetDriverAndMode(Driver *Driver, DriverMode *DriverMode);
+
+	/** Shuts down any current Driver/Mode combo, and restores the display to the original prior to the very first call to geEngine_SetDriverAndMode.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool ShutdownDriver();
-	bool BeginFrame(Camera *Camera, bool ClearScreen);
+
+	/**
+	 * Prepares the geEngine object for a new frame, and sets up the current active back-buffer for drawing. Any Drawing, or Rendering API's MUST be called after geEngine_BeginFrame.
+
+		@param camera A geCamera object that contains a valid geRect set, that will be used to define the active region of the back-buffer. (Not fully implemented)
+		@param clearScreen A geBoolean that if set to true, will wipe the back-buffer. Otherwise, the back-buffer will be preserved from the previous frame.
+
+		@return true is the function succeeds, false otherwise.
+	*/
+	bool BeginFrame(Camera *camera, bool clearScreen);
+
+	/** Ends the current drawing session in the geEngine, makes the current active back-buffer visible, and flips this buffer to the next buffer in the chain.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool EndFrame();
+
+	/** Renders the entire contents of a geWorld into the current active back-buffer. NOTE - If there is more than one back-buffer, then this buffer will not be visible until the next call to geEngine_Endframe. This function MUST be called after geEngine_BeginFrame, and before geEngine_EndFrame.
+		@param World The geWorld object that will be rendered.
+		@param Camera A geCamera object that will define the 3d viewing area, as well as the POV (Point Of View), and orientation info.
+		@param Time This is currently not implemented, and should be set to 0.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool RenderWorld(World *World, Camera *Camera, float Time);
+
+	/** Prints a formatted NULL terminated string using the currently selected font.
+		@param x 	Specifies the row (in pixel space) of the starting point of the text.
+		@param y 	Specifies the column (in pixel space) of the starting point of the text.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool Printf(int32 x, int32 y, std::string String, ...);
 
-	/// RenderPoly : if Texture is null, we Gouraud shade
+	/** Renders a poly to the current active back-buffer using the geEngine object supplied. If there is more than one back-buffer, the poly will not be seen, until the next call to geEngine_EndFrame is called, and the buffer is made visible. This function must be called AFTER geEngine_BeginFrame, and BEFORE geEngine_EndFrame.
+		@param World The geWorld that is the container for the Texture being used for this operation.
+		@param Points Pointer to an array of vertices that define the winding of the poly.
+		@param NumPoints Number of points in the poly.
+		@param Texture Texture to be mapped onto the poly. If this is NULL, then the poly is gouraud shaded.
+		@param Flags One or more of the following flags defining how the poly is rendered: None
+	*/
 	void RenderPoly(const TransformedLitVertex *Points, int NumPoints, const Bitmap *Texture, Poly_Type Flags) const;
 	void RenderPolyArray(const TransformedLitVertex **pPoints, int *pNumPoints, int NumPolys, const Bitmap *Texture, Poly_Type Flags) const;
 
-	/// DrawBitmap & RenderPoly : must Engine_AddBitmap first!
+	/** Draws a geBitmap into the current active back-buffer.
+	 * If there is more than one back-buffer, the bitmap will not be seen until the next call to geEngine_EndFrame.
+		Must Engine_AddBitmap first!
+		@param Bitmap The geBitmap object to draw.
+		@param Source Pointer to a geRect structure that defines what portion of the bitmap will be drawn.
+		@param x Specifies the row (in pixel space) where the bitmap will start drawing.
+		@param y Specifies the column (in pixel space) where the bitmap will start drawing.
+
+		@returns true is the function succeeds, false otherwise.
+	*/
 	bool DrawBitmap(const Bitmap *Bitmap, const Rect *Source, uint32 x, uint32 y) const;
 
+	/** Fills a specified region of the current active back-buffer with a specified color.
+	@param Rect Address of a geRect structure that contains the region of the buffer to fill.
+	@param Color Address of a GE_RGBA structure that contains the color that the fill will use.
+	*/
 	void FillRect(const Rect *rect, const Rgba *Color);
 
+	/** Sets the current gamma correction value that the geEngine object is to use for all further drawing, or rendering API's.
+		@param Gamma The new gamma value. The valid range is from 0 to 3.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool SetGamma(float Gamma);
+
+	/** Gets the current gamma correction value that the geEngine object is currently using for all drawing, and rendering API's.
+		@param Gamma 	Address of a float that will be filled with the current gamma value.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool GetGamma(float *Gamma);
 
 	/// Enables/disables distance fogging.
@@ -51,7 +155,16 @@ struct Engine
 	/// @param End is how far out from the camera where the fog fully obscures things
 	bool SetFogEnable(bool Enable, float r, float g, float b, float Start, float End);
 
+	/** Grabs the current contents of the front-buffer, and saves it to a file, in .BMP format.
+		@param FileName Address of a NULL terminated string that contains the full path of the output file.
+		@return true is the function succeeds, false otherwise.
+	*/
 	bool ScreenShot(std::string FileName);
+
+	/** Enables detailed debug info, using the current active font.
+		@param Enable A geBoolean that should be true for debug info. false otherwise.
+		@return true is the function succeeds, false otherwise.
+	*/
 	void EnableFrameRateCounter(bool Enabled);
 	bool Activate(bool bActive);
 	bool UpdateWindow();
@@ -96,6 +209,9 @@ struct Sound
 	bool SoundIsPlaying();
 };
 
+/**
+ * You cannot use a geWorld object with the geEngine, unless you have added the geWorld to the geEngine first (see geEngine_AddWorld).   Also, like geBitmap's, you cannot add a geWorld to a geEngine, while in the middle of a drawing frame (in between calls to geEngine_BeginFrame, and geEngine_EndFrame).
+ */
 struct World
 {
 	World(File *file);
